@@ -1,0 +1,120 @@
+﻿@model IEnumerable<EventEase.Models.Booking>
+
+@{
+    ViewData["Title"] = "Event Ease - Booking";
+}
+
+<h1>Bookings - Event Ease</h1>
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New</a>
+</p>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5>Search Bookings</h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="Search" method="get">
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="searchTerm">Search Term</label>
+                    <input type="text" id="searchTerm" name="searchTerm" class="form-control" value="@ViewData["SearchTerm"]?.ToString()" />
+                </div>
+                <div class="col-md-2">
+                    <label for="startDate">Start Date</label>
+                    <input type="date" id="startDate" name="startDate" class="form-control" value="@ViewData["StartDate"]?.ToString()" />
+                </div>
+                <div class="col-md-2">
+                    <label for="endDate">End Date</label>
+                    <input type="date" id="endDate" name="endDate" class="form-control" value="@ViewData["EndDate"]?.ToString()" />
+                </div>
+                <div class="col-md-3">
+                    <label for="venueId">Venue</label>
+                    <select id="venueId" name="venueId" class="form-control" asp-items="ViewBag.VenueId">
+                        <option value="">-- All Venues --</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary mr-2">Search</button>
+                    <a asp-action="Index" class="btn btn-secondary">Reset</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.First().Event.EventName)</th>
+            <th>@Html.DisplayNameFor(model => model.First().Venue.VenueName)</th>
+            <th>@Html.DisplayNameFor(model => model.First().BookingDate)</th>
+            <th>Booking Status</th> @* Header remains the same *@
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Event?.EventName</td>
+                <td>@item.Venue?.VenueName</td>
+                <td>@item.BookingDate.ToString("MMMM dd, yyyy")</td>
+                <td>
+                    @{
+                        string status = item.Venue?.AvailabilityStatus;
+                        string badgeClass = "bg-secondary"; // Default
+                        string displayText = "Unknown";
+
+                        if (string.IsNullOrEmpty(status))
+                        {
+                            displayText = "N/A";
+                            badgeClass = "bg-secondary";
+                        }
+                        else if (status == "Available")
+                        {
+                            displayText = "Available";
+                            badgeClass = "bg-success";
+                        }
+                        else if (status == "Booked") // This status is typically set by the booking itself or a manual override
+                        {
+                            displayText = "Booked";
+                            badgeClass = "bg-info"; // Different color for explicitly booked via status
+                        }
+                        else if (status == "Maintenance")
+                        {
+                            displayText = "Maintenance";
+                            badgeClass = "bg-warning text-dark"; // text-dark for better contrast on yellow
+                        }
+                        else if (status == "Closed")
+                        {
+                            displayText = "Closed";
+                            badgeClass = "bg-danger";
+                        }
+                        else
+                        {
+                            displayText = status; // Fallback for any other custom status
+                            badgeClass = "bg-secondary";
+                        }
+                    }
+                    <span class="badge @badgeClass">@displayText</span>
+                </td>
+                <td>
+                    <div class="btn-group">
+                        <a asp-action="Details" asp-route-id="@item.BookingId" class="btn btn-sm btn-info">Details</a>
+                        <a asp-action="Edit" asp-route-id="@item.BookingId" class="btn btn-sm btn-warning">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@item.BookingId" class="btn btn-sm btn-danger">Delete</a>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

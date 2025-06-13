@@ -1,0 +1,126 @@
+﻿@model EventEase.ViewModels.EventIndexViewModel
+
+@{
+    ViewData["Title"] = "Events";
+}
+
+<h1>Events</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New</a>
+</p>
+
+
+
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+
+<form asp-action="Index" method="get" class="mb-4 p-3 border rounded bg-light">
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label for="searchString" class="form-label visually-hidden">Search by Name/Description</label>
+            <input type="text" name="searchString" class="form-control" placeholder="Search by name or description..." value="@Model.SearchString" />
+        </div>
+        <div class="col-md-4">
+            <label for="eventTypeId" class="form-label visually-hidden">Event Type</label>
+            @* Use Model.EventTypes for the dropdown options and Model.SelectedEventTypeId for the selected value *@
+            <select name="eventTypeId" class="form-select" asp-items="@(new SelectList(Model.EventTypes, "Value", "Text", Model.SelectedEventTypeId))">
+                <option value="">-- All Event Types --</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="venueId" class="form-label visually-hidden">Venue</label>
+            @* Use Model.Venues for the dropdown options and Model.SelectedVenueId for the selected value *@
+            <select name="venueId" class="form-select" asp-items="@(new SelectList(Model.Venues, "Value", "Text", Model.SelectedVenueId))">
+                <option value="">-- All Venues --</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="startDate" class="form-label">Start Date</label>
+            <input type="date" name="startDate" class="form-control" value="@(Model.StartDate?.ToString("yyyy-MM-dd"))" />
+        </div>
+        <div class="col-md-4">
+            <label for="endDate" class="form-label">End Date</label>
+            <input type="date" name="endDate" class="form-control" value="@(Model.EndDate?.ToString("yyyy-MM-dd"))" />
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <div class="form-check">
+                <input type="hidden" name="availableVenuesOnly" value="false" /> <input class="form-check-input" type="checkbox" name="availableVenuesOnly" value="true" id="availableVenuesOnly" @(Model.AvailableVenuesOnly == true ? "checked" : "")>
+                <label class="form-check-label" for="availableVenuesOnly">
+                    Available Venues Only
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-12">
+            <button type="submit" class="btn btn-info">Apply Filters</button>
+            <a asp-action="Index" class="btn btn-secondary">Clear Filters</a>
+        </div>
+    </div>
+</form>
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    @foreach (var item in Model.Events) @* Loop through Model.Events, not just 'Model' *@
+    {
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                @if (!string.IsNullOrEmpty(item.ImageUrl))
+                {
+                    <img src="@item.ImageUrl" class="card-img-top" alt="@item.EventName" style="height: 200px; object-fit: cover;">
+                }
+                else
+                {
+                    <div class="d-flex justify-content-center align-items-center bg-light" style="height: 200px;">
+                        No Image
+                    </div>
+                }
+                <div class="card-body">
+                    <h5 class="card-title">@Html.DisplayFor(modelItem => item.EventName)</h5>
+                    <p class="card-text">
+                        @Html.DisplayFor(modelItem => item.EventDate)
+                    </p>
+                    <p class="card-text text-muted">
+                        @Html.DisplayFor(modelItem => item.Description)
+                    </p>
+                    <p class="card-text">
+                        <strong>Venue:</strong> @Html.DisplayFor(modelItem => item.Venue.VenueName)
+                    </p>
+                    <p class="card-text">
+                        <strong>Venue Status:</strong> @(string.IsNullOrEmpty(item.Venue?.AvailabilityStatus) ? "N/A" : item.Venue.AvailabilityStatus)
+                    </p>
+                    <p class="card-text">
+                        <strong>Event Type:</strong> @(item.EventType?.Name ?? "N/A")
+                    </p>
+                </div>
+                <div class="card-footer">
+                    <a asp-action="Details" asp-route-id="@item.EventId" class="btn btn-info btn-sm">Details</a>
+                    <a asp-action="Edit" asp-route-id="@item.EventId" class="btn btn-warning btn-sm">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@item.EventId" class="btn btn-danger btn-sm">Delete</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (!Model.Events.Any())
+{
+    <div class="alert alert-info mt-4" role="alert">
+        No events found matching your criteria.
+    </div>
+}
